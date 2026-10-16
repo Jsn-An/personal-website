@@ -1,0 +1,368 @@
+@import 'tailwindcss';
+
+/*
+ * 设计 token —— 全部取自 Stanford 官方 identity 规范。
+ * 约定见 AGENTS.md §4.4：颜色只能引用本文件中的 token，禁止硬编码 HEX。
+ */
+@theme {
+  /* ── Stanford 官方主色 ── */
+  --color-cardinal: #8c1515;
+  --color-cardinal-light: #b83a4b;
+  --color-cardinal-dark: #820000;
+  --color-white: #ffffff;
+  --color-black: #2e2d29;
+  --color-cool-grey: #53565a;
+
+  /* ── Black 10% 阶梯（边框与分层） ── */
+  --color-ink-90: #43423e;
+  --color-ink-80: #585754;
+  --color-ink-70: #6d6c69;
+  --color-ink-60: #767674; /* 可读文字的下限，对比度 4.55:1 */
+  --color-ink-50: #979694; /* 仅图标、禁用态 */
+  --color-ink-40: #ababa9; /* 仅装饰/边框，禁止用作文字 */
+  --color-ink-30: #c0c0bf;
+  --color-ink-20: #d5d5d4;
+  --color-ink-10: #eaeaea;
+
+  /* ── 官方强调色（仅分类/图表/标签，不得作主色） ── */
+  --color-palo-alto: #175e54;
+  --color-palo-verde: #279989;
+  --color-bay: #6fa287;
+  --color-sky: #4298b5;
+  --color-lagunita: #007c92;
+  --color-poppy: #e98300;
+  --color-spirited: #e04f39;
+  --color-plum: #620059;
+  --color-brick: #651c32;
+  --color-archway: #5d4b3c;
+  --color-stone: #7f7776;
+  --color-fog: #dad7cb;
+  --color-olive: #8f993e;
+  --color-illuminating: #fedd5c;
+
+  /* ── 语义映射 ── */
+  --color-bg: #ffffff;
+  --color-bg-subtle: #f4f4f4;
+  --color-surface: #ffffff;
+  --color-surface-dark: #2e2d29;
+  --color-border: #d5d5d4;
+  --color-border-strong: #c0c0bf;
+  --color-text: #2e2d29;
+  --color-text-muted: #53565a;
+  --color-text-subtle: #767674;
+  --color-text-on-dark: #ffffff;
+  --color-text-on-dark-muted: #dad7cb;
+  --color-link: #8c1515;
+  --color-link-hover: #820000;
+  --color-focus: #8c1515;
+  --color-success: #175e54;
+  --color-warning: #e98300;
+  --color-danger: #8c1515;
+
+  /* ── 圆角：学术风格偏好方角 ── */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+
+  /* ── 字体 ── */
+  --font-sans: var(--font-source-sans), 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-serif: var(--font-source-serif), Georgia, 'Songti SC', serif;
+  --font-mono: var(--font-roboto-mono), ui-monospace, monospace;
+  --font-slab: var(--font-roboto-slab), Georgia, serif;
+}
+
+/* 全站唯一的两处阴影（AGENTS.md §4.4） */
+@utility shadow-nav {
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+}
+@utility shadow-popover {
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.12);
+}
+
+/*
+ * 打印 / 另存为 PDF。
+ * 顶栏、导航、页脚与 skip link 由各组件上的 `print:hidden` 负责隐藏，
+ * 这里只处理纸张上的排版细节。
+ */
+@media print {
+  body {
+    background: #fff;
+  }
+
+  /* 避免一个条目或分区被从中间切断 */
+  li,
+  section,
+  article {
+    break-inside: avoid;
+  }
+
+  .prose-site {
+    max-width: none;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* 锚点跳转时避开 sticky 导航（40px 顶栏 + 72px 导航 + 8px 余量） */
+  :target {
+    scroll-margin-top: 7.5rem;
+  }
+
+  /* 移动端抽屉使用原生 <dialog>，以免费获得焦点陷阱与 Esc 关闭（PRD §5.3） */
+  dialog::backdrop {
+    background: rgb(46 45 41 / 0.4);
+  }
+
+  body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* 焦点环：全站统一 */
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+
+  /* 无任何装饰性动画，因此无需 prefers-reduced-motion 降级 */
+}
+
+/*
+ * 字号阶梯（PRD §6.4）。用普通 class 而非 @utility，
+ * 避免与 Tailwind 的 text-* 命名空间冲突。
+ */
+.type-display {
+  font-size: clamp(2.25rem, 4vw + 1rem, 3.5rem);
+  line-height: 1.15;
+}
+
+.type-h1 {
+  font-size: clamp(1.875rem, 3vw + 0.75rem, 2.5rem);
+  line-height: 1.2;
+}
+
+/*
+ * 正文排版容器（TECH_DESIGN §11）
+ */
+.prose-site {
+  color: var(--color-text);
+  font-size: 1rem;
+  line-height: 1.5;
+  max-width: 68ch;
+}
+
+.prose-site > * + * {
+  margin-top: 1rem;
+}
+
+.prose-site h2 {
+  font-family: var(--font-serif);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+  margin-top: 2.5rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prose-site h3 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.3;
+  margin-top: 2rem;
+}
+
+.prose-site h4 {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  margin-top: 1.5rem;
+}
+
+.prose-site ul,
+.prose-site ol {
+  padding-left: 1.5rem;
+}
+
+.prose-site ul {
+  list-style: disc;
+}
+
+.prose-site ol {
+  list-style: decimal;
+}
+
+.prose-site li + li {
+  margin-top: 0.375rem;
+}
+
+.prose-site blockquote {
+  border-left: 3px solid var(--color-cardinal);
+  padding-left: 1rem;
+  color: var(--color-text-muted);
+}
+
+.prose-site a {
+  color: var(--color-link);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.prose-site a:hover {
+  color: var(--color-link-hover);
+}
+
+.prose-site strong {
+  font-weight: 700;
+}
+
+.prose-site code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  background: var(--color-ink-10);
+  padding: 0.1em 0.35em;
+  border-radius: var(--radius-sm);
+}
+
+.prose-site pre {
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  overflow-x: auto;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.prose-site pre code {
+  background: transparent;
+  padding: 0;
+  font-size: inherit;
+}
+
+/* ── 代码块：行号 ──
+ * rehype-pretty-code 每行输出一个 <span data-line>，行号由 CSS counter 生成。
+ * 行号色用 --color-text-muted：在 #F4F4F4 底上对比度 6.7:1，
+ * 而 --color-ink-60 在同样底色上只有 4.14:1，不达标（AGENTS.md §4.4）。 */
+.prose-site pre code[data-line-numbers] {
+  counter-reset: line;
+}
+
+.prose-site pre code[data-line-numbers] > [data-line] {
+  display: block;
+}
+
+.prose-site pre code[data-line-numbers] > [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 2ch;
+  margin-right: 1.75ch;
+  text-align: right;
+  color: var(--color-text-muted);
+  /* 行号只是定位辅助，不参与代码复制 */
+  user-select: none;
+}
+
+.prose-site pre code[data-line-numbers-max-digits='2'] > [data-line]::before {
+  width: 3ch;
+}
+
+.prose-site pre code[data-line-numbers-max-digits='3'] > [data-line]::before {
+  width: 4ch;
+}
+
+/* 高亮行（```ts {2,4}） */
+.prose-site pre code > [data-highlighted-line] {
+  background: rgb(140 21 21 / 0.06);
+  box-shadow: inset 2px 0 0 var(--color-cardinal);
+}
+
+/* ── 代码块：复制按钮 ── */
+.prose-site figure[data-rehype-pretty-code-figure] {
+  position: relative;
+  margin-top: 1.5rem;
+}
+
+.prose-site figure[data-rehype-pretty-code-figure] > pre {
+  margin-top: 0;
+}
+
+.code-copy {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  z-index: 1;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  transition: color 120ms ease-out;
+}
+
+.code-copy:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-subtle);
+}
+
+/* ── 标题锚点 ── */
+.prose-site .heading-anchor {
+  margin-left: 0.5ch;
+  color: var(--color-text-subtle);
+  text-decoration: none;
+  font-weight: 400;
+}
+
+.prose-site .heading-anchor:hover {
+  color: var(--color-link);
+}
+
+.prose-site table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.prose-site th {
+  border-bottom: 1px solid var(--color-border-strong);
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  font-weight: 700;
+}
+
+.prose-site td {
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.5rem 0.75rem;
+}
+
+.prose-site mark {
+  background: var(--color-illuminating);
+  color: var(--color-text);
+  padding: 0 0.15em;
+}
+
+/*
+ * 搜索命中的高亮（PRD §3.1 F-03）。
+ * 搜索结果的 <mark> 位于 .prose-site 之外，若不单独定义就会落到浏览器的
+ * 默认黄底黑字，既脱离色板也与正文里的高亮不一致。
+ */
+mark {
+  background: var(--color-illuminating);
+  color: var(--color-text);
+  padding: 0 0.1em;
+  border-radius: var(--radius-sm);
+}
+
+.prose-site hr {
+  border: 0;
+  border-top: 1px solid var(--color-border);
+  margin: 2.5rem 0;
+}
